@@ -1,0 +1,72 @@
+{
+  "slug": "image-review",
+  "title": "Image Review",
+  "summary": "Review an image collection one item at a time and retain reversible decisions. Separate passes support manually tagging people, deciding meme/not-meme and reviewing adult-content labels. Machine suggestions help choose a queue but do not silently replace a person’s saved decision.",
+  "features": [
+    [
+      "Review passes",
+      "Separate people, meme and adult-content workflows.",
+      "Owner-only review"
+    ],
+    [
+      "Queues and filters",
+      "Choose source bands, reviewed/unreviewed status, people and machine suggestion filters.",
+      "Owner-only review"
+    ],
+    [
+      "Fast decisions",
+      "Use large buttons or supported swipe gestures; skip uncertain items.",
+      "Owner-only review"
+    ],
+    [
+      "Undo and resume",
+      "Keep independent histories, retry a failed save and resume across devices.",
+      "Owner-only review"
+    ],
+    [
+      "Learning",
+      "Use eligible human meme labels to update a constrained final decision filter.",
+      "Owner-only review"
+    ],
+    [
+      "Exports",
+      "Export decisions and reversible history; original images remain untouched.",
+      "Owner-only review"
+    ]
+  ],
+  "workflows": [
+    [
+      "Choose a small review queue",
+      [
+        "Choose the intended Review pass before judging an image. Start with a manageable queue such as Borderline rather than treating every suggestion as a verdict.",
+        "Inspect the image; enlarge it when the detail matters. If the preview is unavailable, skip instead of guessing.",
+        "Use the appropriate positive/negative decision or Skip. Wait for saving to finish before assuming the next item represents a committed choice."
+      ]
+    ],
+    [
+      "Tag people manually",
+      [
+        "Use Tag people to create/select an appropriate name or nickname and mark the people actually visible.",
+        "Use Other people are present for additional unlabelled people, or No people when that is accurate.",
+        "People tags are manual. This tool does not perform face recognition or propagate someone’s identity automatically."
+      ]
+    ],
+    [
+      "Correct a decision",
+      [
+        "Use Undo for the current review channel, then make the intended decision again. Meme, people and adult-content histories are independent.",
+        "If a save failed, use the retry state rather than creating conflicting changes in another tab. A stale revision can require refreshing before editing again.",
+        "Use filters to revisit previously reviewed items and export the decision history when auditing a batch."
+      ]
+    ],
+    [
+      "Use machine suggestions appropriately",
+      [
+        "Open the machine-flagged queue to prioritise review, then inspect each image yourself.",
+        "Treat model scores as ranking signals rather than calibrated certainty. Your manual label remains a separate record.",
+        "Updating the learning filter uses eligible human labels; a failed quality gate should leave a previous valid filter or no active update, not fabricate success."
+      ]
+    ]
+  ],
+  "limits": "The app depends on the owner-authenticated gateway and persistent database. No private photographs are used in the shareable demo. No new classifier or private-image scan is run by this documentation work."
+}

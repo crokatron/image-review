@@ -1,0 +1,39 @@
+[
+  {
+    "boxes": [
+      {
+        "h": 516.125,
+        "selector": "#scene",
+        "text": "The demo uses generated shapes, never private photos.",
+        "title": "Inspect one image",
+        "w": 606.90625,
+        "x": 612,
+        "y": 456.515625
+      },
+      {
+        "h": 59.1875,
+        "selector": "#yes",
+        "text": "A decision advances the queue and records a label.",
+        "title": "Make one decision",
+        "w": 260,
+        "x": 318,
+        "y": 490.515625
+      },
+      {
+        "h": 59.1875,
+        "selector": "#undoReview",
+        "text": "Undo returns to the previous item and restores its prior label.",
+        "title": "Correct without starting over",
+        "w": 260,
+        "x": 318,
+        "y": 674.078125
+      }
+    ],
+    "height": 1408,
+    "width": 2055,
+    "key": "simulation",
+    "title": "Try the working offline example",
+    "caption": "Screenshot of this project’s interactive demo. Side-by-side services are explicitly simulated.",
+    "cropHeight": 1013.640625
+  }
+]

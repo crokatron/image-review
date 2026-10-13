@@ -1,0 +1,48 @@
+const { chromium }=require('C:/Users/lamon/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),base='http://127.0.0.1:9142',checks=[];
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+ const session=await(await fetch(base+'/qa-session')).json();
+ await fetch(base+'/qa-reset',{method:'POST'});
+ for(const route of ['/image-review/api/queue','/image-review/api/export','/image-review/api/media/'+session.ids[0],'/image-review/style.css']){
+  assert.equal((await fetch(base+route,{redirect:'manual'})).status,401);checks.push('Anonymous denied: '+route.split('/').slice(0,4).join('/'));
+ }
+ const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true,args:['--disable-background-networking','--no-first-run']});
+ const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,extraHTTPHeaders:{'Cf-Access-Jwt-Assertion':session.token}});
+ const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const state=async()=>await(await fetch(base+'/image-review/api/queue?band=all',{headers:{'Cf-Access-Jwt-Assertion':session.token}})).json();
+ const ready=async()=>{await page.waitForFunction(()=>!document.getElementById('meme').disabled);};
+ const settled=async()=>{await page.waitForFunction(()=>!document.getElementById('refresh').disabled);};
+ await page.goto(base+'/image-review/');await page.waitForFunction(()=>!document.getElementById('refresh').disabled);await page.locator('#mode').selectOption('meme');await page.waitForFunction(()=>!document.getElementById('refresh').disabled);await page.locator('#filter-toggle').click();await page.locator('#band').selectOption('Borderline');await ready();await page.locator('#filter-toggle').click();
+ await page.locator('.learning-panel summary').click();assert.equal(await page.locator('#learn').isDisabled(),true);assert.match(await page.locator('#learning-status').innerText(),/Need 200 decisions/);await page.locator('.learning-panel summary').click();checks.push('Learning panel explains sample requirement and blocks premature training');
+ assert.equal((await state()).overall.reviewed,0);assert.equal(await page.locator('#queue-name').innerText(),'Memes · Borderline');
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks.push('390px mobile layout fits without horizontal overflow');
+ await page.screenshot({path:path.join(root,'qa-mobile.png'),fullPage:true});
+ await page.locator('#meme').click();await settled();await ready();assert.equal((await state()).overall.reviewed,1);checks.push('Meme button saves to NAS-shaped backend');
+ await page.reload();await ready();assert.equal((await state()).overall.reviewed,1);checks.push('Refresh resumes saved decisions');
+ await page.locator('#undo').click();await settled();await ready();assert.equal((await state()).overall.reviewed,0);checks.push('Undo restores previous label');
+ await page.keyboard.press('ArrowLeft');await settled();await ready();assert.equal((await state()).overall.reviewed,1);checks.push('Keyboard not-meme action');
+ await page.evaluate(()=>{document.getElementById('meme').click();document.getElementById('meme').click();});await settled();await ready();assert.equal((await state()).overall.reviewed,2);checks.push('Rapid repeat taps create one decision');
+ await page.locator('#skip').click();await settled();await ready();assert.equal((await state()).overall.skipped,1);checks.push('Skip persists');
+ await page.locator('#filter-toggle').click();await page.locator('#state').selectOption('skipped');await settled();await ready();assert.equal(await page.locator('#previous-label').innerText(),'Skipped for later');
+ await page.locator('#not-meme').click();await settled();assert.equal((await state()).overall.skipped,0);checks.push('Skipped filter supports later classification');
+ await page.locator('#state').selectOption('pending');await settled();await ready();await page.locator('#filter-toggle').click();
+ const cdp=await context.newCDPSession(page);const rect=await page.locator('.image-wrap').boundingBox();const x=rect.x+90,y=rect.y+rect.height/2;
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+ for(let i=1;i<=7;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+i*20,y}]});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await settled();assert.equal((await state()).overall.reviewed,4);assert.equal(await page.locator('#empty-title').innerText(),'No images in this view');checks.push('Actual touch swipe saves meme and reaches all-done state');
+ await page.locator('#filter-toggle').click();await page.locator('#band').selectOption('Likely memes');await settled();await ready();checks.push('Band filter changes review queue');
+ let dropped=false;await page.route('**/api/decision',async route=>{if(!dropped){dropped=true;await route.fetch();await route.abort('failed');}else await route.continue();});
+ await page.locator('#meme').click();await page.waitForFunction(()=>!document.getElementById('retry').hidden);assert.equal((await state()).overall.reviewed,5);
+ await page.reload();await settled();assert.equal(await page.locator('#retry').isVisible(),true);assert.equal(await page.locator('#meme').isDisabled(),true);
+ await page.locator('#retry').click();await settled();assert.equal((await state()).overall.reviewed,5);assert.equal(await page.locator('#retry').isVisible(),false);checks.push('Lost response survives reload; same request retry is idempotent');
+ await page.unroute('**/api/decision');await page.locator('#filter-toggle').click();await page.locator('#band').selectOption('Likely non-memes');await settled();await ready();
+ await page.route('**/api/media/*',route=>route.abort('failed'));await page.reload();await settled();await page.waitForFunction(()=>!document.getElementById('image-error').hidden);assert.equal(await page.locator('#meme').isDisabled(),true);assert.equal(await page.locator('#skip').isDisabled(),false);checks.push('Image failure offers retry or skip and blocks blind classification');
+ await page.unroute('**/api/media/*');await page.locator('#image-retry').click();await ready();
+ await page.locator('#zoom').click();assert.equal(await page.locator('#zoom-dialog').evaluate(e=>e.open),true);await page.locator('#zoom-close').click();checks.push('Enlarge preview opens and closes');
+ await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:path.join(root,'qa-desktop.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);checks.push('Desktop layout fits');
+ assert.deepEqual(errors,[]);checks.push('No browser JavaScript errors');
+ const exp=await(await fetch(base+'/image-review/api/export?format=json',{headers:{'Cf-Access-Jwt-Assertion':session.token}})).json();assert.equal(exp.original_images_modified,false);assert.ok(exp.events.some(e=>e.kind==='undo'));checks.push('Export preserves decision and undo history');
+ fs.writeFileSync(path.join(root,'browser-results.json'),JSON.stringify({passed:true,checks},null,2));console.log(JSON.stringify({passed:true,checks},null,2));await browser.close();
+})().catch(e=>{console.error(e.stack);process.exit(1);});

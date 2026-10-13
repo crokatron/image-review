@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="color-scheme" content="dark"><title>Image Review · Mungoon</title><link rel="stylesheet" href="style.css"><script src="app.js" defer></script></head>
+<body>
+<header><a class="brand" href="/">MUNGOON <span>/ IMAGE REVIEW</span></a><span class="privacy">Owner only <i></i></span></header>
+<main>
+ <aside id="controls">
+  <p class="eyebrow">A LITTLE AT A TIME</p><h1>Keep the joke.<br>Clear the doubt.</h1><p class="intro">Swipe right for a meme. Left for not a meme. Your choices save as you go.</p>
+  <button id="filter-toggle" class="quiet mobile-only" aria-expanded="false" aria-controls="filters">Queue &amp; sorting <span>⌄</span></button>
+  <label for="mode" class="mode-label">Review pass</label><select id="mode"><option value="people">1 · Tag people</option><option value="meme">2 · Review memes</option><option value="adult">Adult-content review</option></select>
+  <div id="filters">
+   <label for="band">Review queue</label><select id="band"><option value="all">All organized images</option><option value="priority">Likely memes + Borderline</option><option value="meme_candidates">Memes + Likely memes + Borderline</option><option value="Borderline">Borderline</option><option value="Likely memes">Likely memes</option><option value="Likely non-memes">Likely non-memes</option><option value="Photos">Photos</option><option value="Memes">Memes</option><option value="Screenshots">Screenshots</option><option value="Documents">Documents</option><option value="Graphics">Graphics</option><option value="Technical review">Technical review</option></select>
+   <label for="sort">Start with</label><select id="sort"><option value="uncertain">Most uncertain</option><option value="adult">Highest adult-content score</option><option value="meme">More meme-like</option><option value="nonmeme">Less meme-like</option></select>
+   <label for="state">Show</label><select id="state"><option value="pending">Unreviewed</option><option value="skipped">Skipped for later</option><option value="decided">Already reviewed</option></select>
+   <label for="people-state">People tags</label><select id="people-state"><option value="unreviewed">People not reviewed</option><option value="all">Any people status</option><option value="tagged">People tagged</option><option value="other">Other people present</option><option value="none">No people</option><option value="skip">People skipped</option></select>
+   <label for="person-filter">Only these people (any selected)</label><select id="person-filter" multiple size="3" aria-label="Filter by manually tagged people"></select><button id="clear-people" class="text-button" type="button">Clear person filter</button>
+   <label for="adult-state">Adult-content filter</label><select id="adult-state"><option value="all">Any adult-content status</option><option value="unreviewed">Adult content not reviewed</option><option value="adult">Marked adult content</option><option value="not_adult">Marked not adult</option><option value="skip">Adult content skipped</option></select>
+   <label for="adult-ml">Machine adult-content suggestions</label><select id="adult-ml"><option value="all">All machine suggestions</option><option value="flagged">Likely adult + Uncertain</option><option value="likely_adult">Likely adult content</option><option value="uncertain">Uncertain adult content</option><option value="likely_safe">Likely not adult</option><option value="unscored">Not scanned yet</option></select><p id="adult-ml-status" class="hint">Loading scan results…</p>
+   <button id="refine" class="quiet" type="button">Review tagged people for memes →</button>
+   <p class="hint">These bands are suggestions. Likelihood sorting is a model ranking, not a probability.</p>
+  </div>
+  <section class="progress-panel" aria-label="Review progress"><div class="progress-title"><strong id="reviewed">0 reviewed</strong><span id="percent">0%</span></div><div class="meter"><div id="meter-fill"></div></div><p id="remaining">Connecting to your NAS…</p><p id="overall" class="hint"></p></section>
+  <div class="export"><a href="api/export?format=csv" download>Export decisions <span>↗</span></a><a href="api/export?format=json" download>Export history <span>↗</span></a></div>
+  <details class="learning-panel"><summary>Learn from your choices</summary><p id="learning-status" class="hint">Loading learning progress…</p><button id="learn" class="quiet" disabled>Update filter</button><p id="learning-result" class="hint" role="status"></p><p class="hint">Uses your latest Meme / Not meme choices; skips are excluded. A new cutoff must improve a held-out check by 5 percentage points without reducing either class recall. Original review bands stay as recorded. Check both likely queues too.</p></details>
+  <p class="originals">Originals stay untouched.<br>Decisions and previews stay on your private NAS.</p>
+ </aside>
+ <section class="review-area" aria-label="Image reviewer">
+  <div class="queue-heading"><span id="queue-name">Borderline</span><span id="position">Loading…</span><button id="refresh" class="icon-button" aria-label="Refresh from NAS" title="Refresh from NAS">↻</button></div>
+  <div id="card-stage">
+   <article id="card" tabindex="0" aria-label="Swipe image right for meme or left for not meme">
+    <div class="image-wrap"><img id="image" draggable="false" alt="Image awaiting review"><div id="image-error" hidden><span>Preview didn’t load</span><p>You can retry or skip this image.</p><button id="image-retry" class="quiet">Retry preview</button></div><span id="badge-no" class="swipe-badge no">NOT MEME</span><span id="badge-yes" class="swipe-badge yes">MEME</span><button id="zoom" class="zoom" aria-label="Enlarge image">⤢</button></div>
+    <div class="card-caption"><div><strong id="image-type">Loading image</strong><span id="image-id"></span></div><span id="previous-label"></span></div>
+    <p id="adult-suggestion" class="hint" hidden></p>
+   </article>
+   <div id="empty" hidden><div class="done-mark">✓</div><h2 id="empty-title">Queue cleared</h2><p id="empty-message"></p><button id="revisit" class="quiet">Review skipped images</button></div>
+  </div>
+  <details id="people-editor" class="people-editor" open><summary>Who is in this image?</summary><p class="hint">Tag people yourself. Select everyone you recognize; mark other people if anyone else is present.</p><div id="people-choices" class="people-choices"></div><label class="check"><input id="other-people" type="checkbox"> Other people are present</label><div class="add-person"><input id="person-name" type="text" maxlength="64" placeholder="Name or nickname" aria-label="New person tag"><button id="add-person" class="quiet" type="button">Add tag</button></div><div class="tag-actions"><button id="save-people" class="choice yes" type="button">Save people tags</button><button id="no-people" class="quiet" type="button">No people</button></div></details>
+  <div class="actions"><button id="not-meme" class="choice no"><span>×</span>Not meme<kbd>←</kbd></button><button id="meme" class="choice yes"><span>✓</span>Meme<kbd>→</kbd></button></div>
+  <div class="secondary"><button id="undo" class="quiet" disabled>↶ Undo <kbd>Z</kbd></button><button id="skip" class="quiet" disabled>Skip for later <kbd>S</kbd></button></div>
+  <div class="status-line"><span id="status" role="status" aria-live="polite">Connecting…</span><button id="retry" class="text-button" hidden>Retry save</button></div>
+  <p id="gesture-hint" class="gesture-hint">← Not meme <span>·</span> Meme →</p>
+ </section>
+</main>
+<dialog id="zoom-dialog"><button id="zoom-close" class="quiet">Close ×</button><div><img id="zoom-image" alt="Enlarged image for review"></div><p>Pinch to zoom on your phone.</p></dialog>
+<noscript>This reviewer needs JavaScript to save your decisions.</noscript>
+</body></html>
