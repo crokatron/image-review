@@ -12,4 +12,4 @@ Owner-only photo review with independent people/content decisions, undo/history 
 
 **Next maintainer action:** Verify revision conflict/retry and per-pass undo with synthetic media. Keep gateway access owner-only. Learning calibrates the existing score cutoff; its retained holdout/near-duplicate limitations do not support claims of general classifier accuracy.
 
-**Status:** private upload verified on 14 October 2026. These guides accompany the private source package. Live runtime, data backups and full recovery were not retested. Public release needs separate approval.
+**Status:** private upload verified on 14 October 2026. These guides accompany the source package. Live runtime, data backups and full recovery were not retested. Public sharing was authorised on 14 October 2026; the NAS backup remains private.
