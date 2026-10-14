@@ -1,5 +1,7 @@
 # Image Review
 
+**Maintaining this project? [Start here](docs/START-HERE.md) · [Detailed handover](docs/HANDOVER.md)**
+
 Review an image collection one item at a time and retain reversible decisions. Separate passes support manually tagging people, deciding meme/not-meme and reviewing adult-content labels. Machine suggestions help choose a queue but do not silently replace a person’s saved decision.
 
 **Private preview · not published.**
